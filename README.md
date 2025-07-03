@@ -1,12 +1,13 @@
 # Terraform Provider Installation Guide
 
-## Installation Methods
+## Installation Methods (macos)
 
 ### Method 1: Local Development Installation (Recommended)
 
 Use the Makefile for easy local development:
 
 ```bash
+make build
 # Build and install for local development
 make install
 ```

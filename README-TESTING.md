@@ -1,196 +1,225 @@
-# Testing the ML Platform Terraform Provider
+# Testing Guide
 
-This document describes how to test the custom Terraform provider for Kind clusters.
+This document focuses exclusively on testing the Terraform provider. For installation and usage, see [README.md](README.md).
 
 ## Test Structure
 
+The provider uses multiple test layers:
+
 ```
-terraform-provider-kind/
-├── resource_kind_cluster_test.go      # Acceptance tests
-├── resource_kind_cluster_unit_test.go  # Unit tests
-├── provider_test.go                    # Provider tests
-├── test-fixtures/                      # Test Terraform configs
-│   ├── basic-cluster.tf               # Basic test configuration
-│   └── full-config.tf                 # Full feature test
-└── test-e2e.sh                        # End-to-end test script
+tests/
+├── resource_kind_cluster_test.go      # Acceptance tests (TF_ACC=1)
+├── resource_kind_cluster_unit_test.go # Unit tests (no external deps)
+├── provider_test.go                   # Provider configuration tests
+├── test-fixtures/                     # Terraform test configurations
+│   ├── basic-cluster.tf              # Basic test setup
+│   └── full-config.tf               # Advanced features test
+└── test-e2e.sh                      # End-to-end test script
 ```
 
-## Running Tests
-
-### Quick Start
-
-```bash
-# Run all tests
-./test-e2e.sh
-
-# Run only unit tests
-./test-e2e.sh unit
-make test-unit
-
-# Run only acceptance tests
-TF_ACC=1 ./test-e2e.sh acc
-TF_ACC=1 make test-acc
-
-# Run end-to-end tests
-./test-e2e.sh e2e
-
-# Generate coverage report
-make test-coverage
-```
+## Test Types
 
 ### Unit Tests
-
-Unit tests test individual functions without creating real resources:
-
+Fast tests without external dependencies:
 ```bash
-go test -run "^Test[^Acc]" ./... -v
+make test-unit
 ```
 
-**What they test:**
-- Configuration parsing
+**Coverage:**
+- Configuration parsing and validation
 - Schema validation
 - Helper functions
-- Error handling
+- Error handling logic
 
 ### Acceptance Tests
-
-Acceptance tests create real Kind clusters to test the provider:
-
+Integration tests with real Kind clusters:
 ```bash
-TF_ACC=1 go test -run "^TestAcc" ./... -v -timeout 30m
+TF_ACC=1 make test-acc
 ```
 
-**What they test:**
-- Cluster creation and deletion
-- Port mapping configuration
-- Multi-node clusters
-- Import functionality
+**Coverage:**
+- Full resource lifecycle (create, read, update, delete)
+- Multi-node cluster configurations
+- Port mapping functionality
+- Import/export scenarios
 - External deletion handling
 
 ### End-to-End Tests
-
-The E2E test script tests the complete workflow:
-
+Complete workflow validation:
 ```bash
 ./test-e2e.sh
 ```
 
-**What it does:**
-1. Builds and installs the provider
-2. Runs unit tests
-3. Runs acceptance tests (if TF_ACC=1)
-4. Tests real Terraform configurations
-5. Generates coverage report
-6. Cleans up resources
+**What it validates:**
+- Provider build and installation
+- Real Terraform configurations
+- Cluster accessibility via kubectl
+- Full integration scenarios
 
-## Test Cases
+## GitHub Actions CI
 
-### Basic Cluster Test
-- Creates a simple Kind cluster
-- Verifies cluster is accessible
-- Tests computed attributes (endpoint, certificates)
+Automated testing runs on every push/PR:
 
-### Configuration Test
-- Tests custom node configuration
-- Tests port mappings
-- Tests kubeadm patches
-- Tests multiple worker nodes
+### CI Pipeline (`.github/workflows/ci.yml`)
+Triggers: Push to `master`/`main`, Pull Requests
 
-### Edge Cases
-- Cluster already exists
-- External deletion (disappears test)
-- Invalid configurations
-- Docker daemon unavailable
+**Test Steps:**
+```yaml
+- name: Set up Go
+  uses: actions/setup-go@v5
+  with:
+    go-version: '1.21'
 
-### Integration Test
-- Creates cluster
-- Configures Kubernetes provider
-- Creates resources in the cluster
-- Verifies end-to-end functionality
+- name: Install dependencies
+  run: |
+    # kubectl, kind, terraform auto-installed
+    
+- name: Run unit tests
+  run: make test-unit
+  
+- name: Run acceptance tests  
+  run: TF_ACC=1 make test-acc
+  
+- name: Generate coverage report
+  run: make test-coverage
+  
+- name: Upload coverage to Codecov
+  uses: codecov/codecov-action@v4
+```
 
-## Environment Variables
+### Build Pipeline (`.github/workflows/build.yml`)
+Triggers: Git tags (`v*`), Manual dispatch
 
+**Multi-Platform Builds:**
+```yaml
+strategy:
+  matrix:
+    include:
+      - goos: linux,   goarch: amd64
+      - goos: linux,   goarch: arm64
+      - goos: darwin,  goarch: amd64  
+      - goos: darwin,  goarch: arm64  # Apple Silicon
+      - goos: windows, goarch: amd64
+      - goos: windows, goarch: arm64
+```
+
+**Release Process:**
+1. Build binaries for all platforms
+2. Create archives (`.tar.gz` for Unix, `.zip` for Windows)
+3. Upload artifacts
+4. Create GitHub release with binaries
+
+## Test Environment Setup
+
+### Prerequisites
+```bash
+# Quick dependency check
+./install-deps.sh --check
+
+# Install missing dependencies
+./install-deps.sh
+```
+
+### Environment Variables
 ```bash
 # Enable acceptance tests
 export TF_ACC=1
 
-# Use custom Docker host
+# Custom Docker configuration
 export DOCKER_HOST=unix:///var/run/docker.sock
 
-# Skip Kind tests
-export SKIP_KIND_TESTS=1
-
-# Enable debug logging
+# Debug logging
 export TF_LOG=DEBUG
+export TF_LOG_PATH=./terraform.log
+
+# Skip certain tests
+export SKIP_KIND_TESTS=1
 ```
 
-## Debugging Failed Tests
+## Debugging Test Failures
 
-### Check test logs
+### Test-Specific Debugging
 ```bash
-TF_LOG=DEBUG go test -run TestAccKindCluster_basic -v
+# Run single test with debug logging
+TF_LOG=DEBUG go test -run TestAccKindCluster_basic -v -timeout 30m
+
+# Run with race detection
+go test -race -run TestAccKindCluster_basic
+
+# Check test artifacts
+ls -la test-fixtures/
 ```
 
-### Check Kind clusters
+### Cluster State Inspection
 ```bash
-# List all clusters
-kind get clusters
+# List active test clusters
+kind get clusters | grep tf-acc-test
 
-# Check cluster details
-docker ps -a | grep kind
+# Inspect cluster details
+kubectl --context kind-tf-acc-test-cluster get nodes
 
-# Get cluster logs
-kind export logs --name test-cluster
+# Export cluster logs
+kind export logs --name tf-acc-test-cluster ./logs/
+
+# Check Docker containers
+docker ps -f name=kind
 ```
 
-### Clean up stuck resources
+### Cleanup Stuck Resources
 ```bash
-# Delete test clusters
+# Clean test clusters
 kind get clusters | grep "tf-acc-test" | xargs -I {} kind delete cluster --name {}
 
-# Remove Docker containers
+# Remove orphaned containers
 docker rm -f $(docker ps -aq -f name=kind)
+
+# Clean Terraform state
+make clean
 ```
 
-## Writing New Tests
+## Writing Tests
 
-### Unit Test Template
+### Unit Test Pattern
 ```go
-func TestMyFunction(t *testing.T) {
+func TestKindConfigGeneration(t *testing.T) {
     tests := []struct {
-        name     string
-        input    string
-        expected string
-        wantErr  bool
+        name        string
+        input       map[string]interface{}
+        expected    map[string]interface{}
+        expectError bool
     }{
         {
-            name:     "valid input",
-            input:    "test",
-            expected: "result",
-            wantErr:  false,
+            name: "basic configuration",
+            input: map[string]interface{}{
+                "node_image": "kindest/node:v1.28.0",
+            },
+            expected: map[string]interface{}{
+                "kind": "Cluster",
+                "apiVersion": "kind.x-k8s.io/v1alpha4",
+            },
+            expectError: false,
         },
     }
 
     for _, tt := range tests {
         t.Run(tt.name, func(t *testing.T) {
-            got, err := myFunction(tt.input)
-            if (err != nil) != tt.wantErr {
-                t.Errorf("myFunction() error = %v, wantErr %v", err, tt.wantErr)
+            result, err := generateKindConfig(tt.input)
+            if tt.expectError {
+                assert.Error(t, err)
                 return
             }
-            if got != tt.expected {
-                t.Errorf("myFunction() = %v, want %v", got, tt.expected)
-            }
+            assert.NoError(t, err)
+            assert.Equal(t, tt.expected["kind"], result["kind"])
         })
     }
 }
 ```
 
-### Acceptance Test Template
+### Acceptance Test Pattern
 ```go
-func TestAccKindCluster_myFeature(t *testing.T) {
-    rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
-    resourceName := "mlplatform_kind_cluster.test"
+func TestAccKindCluster_portMapping(t *testing.T) {
+    rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(8))
+    resourceName := "kind_cluster.test"
 
     resource.Test(t, resource.TestCase{
         PreCheck:          func() { testAccPreCheck(t) },
@@ -198,10 +227,12 @@ func TestAccKindCluster_myFeature(t *testing.T) {
         CheckDestroy:      testAccCheckKindClusterDestroy,
         Steps: []resource.TestStep{
             {
-                Config: testAccKindClusterConfig_myFeature(rName),
+                Config: testAccKindClusterConfig_portMapping(rName),
                 Check: resource.ComposeTestCheckFunc(
                     testAccCheckKindClusterExists(resourceName),
-                    // Add your checks here
+                    resource.TestCheckResourceAttr(resourceName, "name", rName),
+                    resource.TestCheckResourceAttrSet(resourceName, "endpoint"),
+                    testAccCheckPortMapping(resourceName, 8080, 30080),
                 ),
             },
         },
@@ -209,77 +240,87 @@ func TestAccKindCluster_myFeature(t *testing.T) {
 }
 ```
 
-## Continuous Integration
+## Performance Testing
 
-### GitHub Actions Example
-```yaml
-name: Tests
-on: [push, pull_request]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.21'
-    
-    - name: Install Kind
-      run: |
-        curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
-        chmod +x ./kind
-        sudo mv ./kind /usr/local/bin/kind
-    
-    - name: Run tests
-      run: |
-        make test-unit
-        TF_ACC=1 make test-acc
-    
-    - name: Upload coverage
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.out
-```
-
-## Best Practices
-
-1. **Always clean up resources** - Use defer statements and cleanup functions
-2. **Use unique names** - Append random strings to avoid conflicts
-3. **Test error cases** - Verify the provider handles errors gracefully
-4. **Mock external calls** - Use interfaces for testability
-5. **Keep tests fast** - Use parallel testing where possible
-6. **Document test purpose** - Clear test names and comments
-
-## Troubleshooting
-
-### Common Issues
-
-**"cluster already exists"**
+### Load Testing
 ```bash
-kind delete cluster --name <cluster-name>
+# Test multiple clusters concurrently
+TF_ACC=1 go test -run TestAccKindCluster -parallel 4
+
+# Memory usage monitoring
+TF_ACC=1 go test -memprofile=mem.prof -run TestAccKindCluster_basic
+
+# CPU profiling
+TF_ACC=1 go test -cpuprofile=cpu.prof -run TestAccKindCluster_basic
 ```
 
-**"Docker daemon not accessible"**
+### Resource Limits
 ```bash
-# Check Docker is running
-docker info
-
-# Check socket permissions
-ls -la /var/run/docker.sock
+# Set Docker resource limits for testing
+docker update --memory 1g --cpus 0.5 kind-control-plane
 ```
 
-**"timeout waiting for cluster"**
-- Increase timeout in test
-- Check Docker resources (CPU/memory)
-- Check for conflicting ports
+## Test Coverage
 
-**"failed to build provider"**
+### Generate Coverage Reports
 ```bash
-# Clean and rebuild
-make clean
-go mod tidy
-make build
+# Unit test coverage
+go test -coverprofile=unit.out ./... -run "^Test[^Acc]"
+
+# Acceptance test coverage
+TF_ACC=1 go test -coverprofile=acc.out ./... -run "^TestAcc"
+
+# Combined coverage
+make test-coverage
+open coverage.html
 ```
+
+### Coverage Goals
+- **Unit tests**: >90% line coverage
+- **Acceptance tests**: All major user workflows
+- **Integration tests**: End-to-end scenarios
+
+## Common Test Issues
+
+### Timing Issues
+```bash
+# Increase test timeouts
+go test -timeout 45m -run TestAccKindCluster_basic
+
+# Add retry logic for flaky operations
+resource.Retry(5*time.Minute, func() *resource.RetryError {
+    // retry logic
+})
+```
+
+### Resource Conflicts
+```bash
+# Use unique test names
+rName := fmt.Sprintf("tf-acc-test-%d", time.Now().Unix())
+
+# Cleanup in defer blocks
+defer func() {
+    kind delete cluster --name $rName
+}()
+```
+
+### CI-Specific Issues
+```bash
+# GitHub Actions debugging
+echo "::debug::Cluster creation started"
+echo "::error::Cluster creation failed"
+
+# Check runner resources
+free -h
+df -h
+docker system df
+```
+
+## Test Best Practices
+
+1. **Isolation**: Each test should be independent
+2. **Cleanup**: Always clean up resources (use defer)
+3. **Naming**: Use descriptive test names with context
+4. **Speed**: Keep unit tests fast, acceptance tests thorough
+5. **Reliability**: Handle timing issues and retries
+6. **Coverage**: Test both success and failure scenarios
