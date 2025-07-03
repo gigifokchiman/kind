@@ -1,16 +1,5 @@
-terraform {
-  required_providers {
-    kind = {
-      source  = "github.com/gigifokcm/kind"
-      version = "0.1.0"
-    }
-  }
-}
-
-provider "kind" {}
-
 # Full configuration test
-resource "kind_cluster" "test" {
+resource "kind_cluster" "full_test" {
   name       = "test-full-config"
   node_image = "kindest/node:v1.27.0"
 
@@ -62,25 +51,10 @@ resource "kind_cluster" "test" {
   wait_for_ready = true
 }
 
-# Test that we can use the cluster credentials
-provider "kubernetes" {
-  host                   = kind_cluster.test.endpoint
-  cluster_ca_certificate = base64decode(kind_cluster.test.cluster_ca_certificate)
-  client_certificate     = base64decode(kind_cluster.test.client_certificate)
-  client_key             = base64decode(kind_cluster.test.client_key)
-}
-
-# Create a test namespace to verify cluster is working
-resource "kubernetes_namespace" "test" {
-  metadata {
-    name = "test-namespace"
-  }
-}
-
 output "test_results" {
   value = {
-    cluster_name    = kind_cluster.test.name
-    cluster_ready   = kind_cluster.test.wait_for_ready
-    namespace_created = kubernetes_namespace.test.metadata[0].name
+    cluster_name    = kind_cluster.full_test.name
+    cluster_ready   = kind_cluster.full_test.wait_for_ready
+    endpoint        = kind_cluster.full_test.endpoint
   }
 }

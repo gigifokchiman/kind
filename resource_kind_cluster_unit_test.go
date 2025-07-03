@@ -41,7 +41,7 @@ func TestGenerateKindConfig(t *testing.T) {
 			expected: map[string]interface{}{
 				"kind":       "Cluster",
 				"apiVersion": "kind.x-k8s.io/v1alpha4",
-				"node": []map[string]interface{}{
+				"nodes": []map[string]interface{}{
 					{
 						"role": "control-plane",
 						"extraPortMappings": []map[string]interface{}(nil),
@@ -78,7 +78,7 @@ func TestGenerateKindConfig(t *testing.T) {
 			expected: map[string]interface{}{
 				"kind":       "Cluster",
 				"apiVersion": "kind.x-k8s.io/v1alpha4",
-				"node": []map[string]interface{}{
+				"nodes": []map[string]interface{}{
 					{
 						"role": "control-plane",
 						"extraPortMappings": []map[string]interface{}{

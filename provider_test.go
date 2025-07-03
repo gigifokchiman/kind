@@ -9,7 +9,7 @@ import (
 )
 
 var testAccProviderFactories = map[string]func() (*schema.Provider, error){
-	"mlplatform": func() (*schema.Provider, error) {
+	"kind": func() (*schema.Provider, error) {
 		return Provider(), nil
 	},
 }

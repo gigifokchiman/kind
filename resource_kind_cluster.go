@@ -366,7 +366,7 @@ func generateKindConfig(d *schema.ResourceData) map[string]interface{} {
 					
 					processedNodes = append(processedNodes, processedNode)
 				}
-				config["node"] = processedNodes
+				config["nodes"] = processedNodes
 			}
 		}
 	}

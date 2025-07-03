@@ -5,7 +5,7 @@ This document describes how to test the custom Terraform provider for Kind clust
 ## Test Structure
 
 ```
-terraform-provider-mlplatform/
+terraform-provider-kind/
 ├── resource_kind_cluster_test.go      # Acceptance tests
 ├── resource_kind_cluster_unit_test.go  # Unit tests
 ├── provider_test.go                    # Provider tests
