@@ -1,30 +1,63 @@
-# Terraform Provider for Kind
+# Terraform Provider Installation Guide
 
-This is a custom Terraform provider for managing Kind (Kubernetes in Docker) clusters.
+## Installation Methods
 
-## Features
+### Method 1: Local Development Installation (Recommended)
 
-- Create and manage Kind clusters
-- Configure port mappings for local development
-- Extract kubeconfig and cluster credentials
-- Support for custom Kind configurations
-
-## Installation
-
-### Build and Install Locally
+Use the Makefile for easy local development:
 
 ```bash
-# Build the provider
+# Build and install for local development
+make install
+```
+
+This will:
+- Build the provider binary
+- Install it to `~/.terraform.d/plugins/kind.local/gigifokchiman/kind/0.1.0/`
+- Allow you to use the provider in your Terraform configurations
+
+### Method 2: Registry-Style Installation
+
+For testing registry-style installation:
+
+```bash
+# Build and install as if from registry
+make install-registry
+```
+
+This installs to `~/.terraform.d/plugins/registry.terraform.io/gigifokchiman/kind/0.1.0/`
+
+### Other Makefile Commands
+
+```bash
+# Build only (without installing)
 make build
 
-# Install to local Terraform plugins directory
-make install
+# Run all tests
+make test
 
-# Or do both
+# Run unit tests only
+make test-unit
+
+# Run acceptance tests
+make test-acc
+
+# Generate test coverage report
+make test-coverage
+
+# Clean built artifacts
+make clean
+
+# Generate documentation
+make docs
+
+# Development workflow (clean, build, install)
 make dev
 ```
 
-### Use in Terraform
+## Provider Configuration
+
+### For Local Development (after `make install`)
 
 ```hcl
 terraform {
@@ -37,145 +70,68 @@ terraform {
 }
 
 provider "kind" {
-  # Docker host configuration (optional)
-  # docker_host = "unix:///var/run/docker.sock"
+  # Optional: specify docker host
+  # docker_host = "tcp://localhost:2375"
 }
 
-# Create a Kind cluster
 resource "kind_cluster" "default" {
-  name = "my-kind-cluster"
-  
-  kind_config {
-    kind        = "Cluster"
-    api_version = "kind.x-k8s.io/v1alpha4"
-    
-    node {
-      role = "control-plane"
-      
-      kubeadm_config_patches = [
-        "kind: InitConfiguration\nnodeRegistration:\n  kubeletExtraArgs:\n    node-labels: \"ingress-ready=true\""
-      ]
-      
-      extra_port_mappings {
-        container_port = 80
-        host_port      = 8080
-      }
-      extra_port_mappings {
-        container_port = 443
-        host_port      = 8443
-      }
-    }
-    
-    node {
-      role = "worker"
-    }
-    
-    node {
-      role = "worker"
-    }
-  }
-  
-  wait_for_ready = true
-}
-
-# Use the cluster credentials
-provider "kubernetes" {
-  host                   = mlplatform_kind_cluster.default.endpoint
-  cluster_ca_certificate = base64decode(mlplatform_kind_cluster.default.cluster_ca_certificate)
-  client_certificate     = base64decode(mlplatform_kind_cluster.default.client_certificate)
-  client_key             = base64decode(mlplatform_kind_cluster.default.client_key)
+  name = "my-cluster"
+  # other configuration...
 }
 ```
 
-## Development
+### For Registry Installation (after `make install-registry`)
 
-### Prerequisites
-
-- Go 1.21+
-- Terraform 1.0+
-- Kind CLI installed
-- Docker running
-
-### Building
-
-```bash
-# Get dependencies
-go mod download
-
-# Build
-go build
-
-# Run tests
-go test ./...
-```
-
-### Testing the Provider
-
-```bash
-# Create a test configuration
-cat > test.tf <<EOF
+```hcl
 terraform {
   required_providers {
-    mlplatform = {
-      source  = "mlplatform.local/your-org/mlplatform"
+    kind = {
+      source  = "registry.terraform.io/gigifokchiman/kind"
       version = "0.1.0"
     }
   }
 }
 
-provider "mlplatform" {}
-
-resource "mlplatform_kind_cluster" "test" {
-  name = "test-cluster"
+provider "kind" {
+  # Optional: specify docker host
+  # docker_host = "tcp://localhost:2375"
 }
-EOF
 
-# Initialize and apply
-terraform init
-terraform apply
+resource "kind_cluster" "default" {
+  name = "my-cluster"
+  # other configuration...
+}
 ```
 
-## Provider Configuration
+## Troubleshooting
 
-### Provider Arguments
+### Error: Failed to install provider
 
-- `docker_host` - (Optional) Docker daemon socket. Defaults to `DOCKER_HOST` environment variable.
+If you encounter installation errors:
 
-### Resource: mlplatform_kind_cluster
+1. Make sure you've run `make install` or `make install-registry`
+2. Verify the correct provider source in your Terraform configuration
+3. Run `terraform init` after installation
+4. Check that the binary exists in the expected plugin directory
 
-#### Arguments
+### Platform-Specific Notes
 
-- `name` - (Required) Name of the Kind cluster.
-- `node_image` - (Optional) Docker image for nodes. Default: `kindest/node:v1.28.0`.
-- `wait_for_ready` - (Optional) Wait for cluster to be ready. Default: `true`.
-- `kind_config` - (Optional) Kind cluster configuration block.
+The Makefile automatically detects your OS and architecture. Supported platforms:
+- macOS Intel: `darwin_amd64`
+- macOS Apple Silicon: `darwin_arm64`
+- Linux: `linux_amd64`
+- Windows: `windows_amd64`
 
-#### Attributes
+### Development Workflow
 
-- `kubeconfig_path` - Path to the kubeconfig file.
-- `endpoint` - Kubernetes API server endpoint.
-- `cluster_ca_certificate` - Base64 encoded cluster CA certificate.
-- `client_certificate` - Base64 encoded client certificate.
-- `client_key` - Base64 encoded client key.
+1. Make changes to the provider code
+2. Run `make dev` to rebuild and reinstall
+3. Run `terraform init` in your test configuration
+4. Test your changes
 
-## Why a Custom Provider?
+## Important Notes
 
-1. **Control**: Full control over cluster creation process
-2. **Customization**: Add ML Platform-specific configurations
-3. **Integration**: Direct integration with your platform
-4. **No Dependencies**: No reliance on third-party provider maintenance
-5. **Learning**: Understand Terraform provider development
-
-## Future Enhancements
-
-- [ ] Add ML model deployment resources
-- [ ] Add training job resources
-- [ ] Add feature store resources
-- [ ] Add experiment tracking resources
-- [ ] Support for remote Docker hosts
-- [ ] Cluster backup and restore
-- [ ] Custom node configurations
-
-## License
-
-MIT
+- Use `make install` for local development
+- Use `make install-registry` to test registry-style installation
+- Always run `terraform init` after installing or updating the provider
+- The resource type is `kind_cluster` (not `mlplatform_kind_cluster`)
