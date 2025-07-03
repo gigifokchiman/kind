@@ -56,9 +56,9 @@ jobs:
         # Create archive
         ARCHIVE_NAME="terraform-provider-kind_${GITHUB_REF#refs/tags/}_${GOOS}_${GOARCH}"
         if [ "$GOOS" = "windows" ]; then
-          zip "${ARCHIVE_NAME}.zip" ${BINARY_NAME}
+          zip -q "${ARCHIVE_NAME}.zip" ${BINARY_NAME}
         else
-          tar -czf "${ARCHIVE_NAME}.tar.gz" ${BINARY_NAME}
+          tar -czf "${ARCHIVE_NAME}.tar.gz" -C . ${BINARY_NAME}
         fi
         
     - name: Upload artifacts
