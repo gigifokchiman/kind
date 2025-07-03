@@ -25,7 +25,7 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"mlplatform_kind_cluster": resourceKindCluster(),
+			"kind_cluster": resourceKindCluster(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}

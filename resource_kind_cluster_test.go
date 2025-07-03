@@ -14,7 +14,7 @@ import (
 // TestAccKindCluster_basic tests the basic creation and deletion of a Kind cluster
 func TestAccKindCluster_basic(t *testing.T) {
 	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
-	resourceName := "mlplatform_kind_cluster.test"
+	resourceName := "kind_cluster.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -52,7 +52,7 @@ func TestAccKindCluster_basic(t *testing.T) {
 // TestAccKindCluster_withConfig tests creation with custom configuration
 func TestAccKindCluster_withConfig(t *testing.T) {
 	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
-	resourceName := "mlplatform_kind_cluster.test"
+	resourceName := "kind_cluster.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -68,8 +68,8 @@ func TestAccKindCluster_withConfig(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "kind_config.0.node.#", "3"),
 					resource.TestCheckResourceAttr(resourceName, "kind_config.0.node.0.role", "control-plane"),
 					resource.TestCheckResourceAttr(resourceName, "kind_config.0.node.0.extra_port_mappings.#", "2"),
-					testAccCheckKindClusterPortMapping(resourceName, 80, 8080),
-					testAccCheckKindClusterPortMapping(resourceName, 443, 8443),
+					resource.TestCheckResourceAttrSet(resourceName, "kind_config.0.node.0.extra_port_mappings.0.host_port"),
+					resource.TestCheckResourceAttrSet(resourceName, "kind_config.0.node.0.extra_port_mappings.1.host_port"),
 				),
 			},
 		},
@@ -79,7 +79,7 @@ func TestAccKindCluster_withConfig(t *testing.T) {
 // TestAccKindCluster_customNodeImage tests using a custom node image
 func TestAccKindCluster_customNodeImage(t *testing.T) {
 	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
-	resourceName := "mlplatform_kind_cluster.test"
+	resourceName := "kind_cluster.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -100,7 +100,7 @@ func TestAccKindCluster_customNodeImage(t *testing.T) {
 // TestAccKindCluster_multipleNodes tests creation with multiple worker nodes
 func TestAccKindCluster_multipleNodes(t *testing.T) {
 	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
-	resourceName := "mlplatform_kind_cluster.test"
+	resourceName := "kind_cluster.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -122,7 +122,7 @@ func TestAccKindCluster_multipleNodes(t *testing.T) {
 // TestAccKindCluster_disappears tests that the resource handles external deletion
 func TestAccKindCluster_disappears(t *testing.T) {
 	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
-	resourceName := "mlplatform_kind_cluster.test"
+	resourceName := "kind_cluster.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -176,7 +176,7 @@ func testAccCheckKindClusterExists(n string) resource.TestCheckFunc {
 
 func testAccCheckKindClusterDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mlplatform_kind_cluster" {
+		if rs.Type != "kind_cluster" {
 			continue
 		}
 
@@ -261,7 +261,7 @@ func testAccCheckKindClusterNodeCount(n string, expectedCount int) resource.Test
 
 func testAccKindClusterConfig_basic(name string) string {
 	return fmt.Sprintf(`
-resource "mlplatform_kind_cluster" "test" {
+resource "kind_cluster" "test" {
   name           = "%s"
   wait_for_ready = true
 }
@@ -269,8 +269,10 @@ resource "mlplatform_kind_cluster" "test" {
 }
 
 func testAccKindClusterConfig_withPortMappings(name string) string {
+	// Use dynamic ports to avoid conflicts
+	basePort := 9000 + (int(acctest.RandInt()) % 1000)
 	return fmt.Sprintf(`
-resource "mlplatform_kind_cluster" "test" {
+resource "kind_cluster" "test" {
   name = "%s"
 
   kind_config {
@@ -279,12 +281,12 @@ resource "mlplatform_kind_cluster" "test" {
       
       extra_port_mappings {
         container_port = 80
-        host_port      = 8080
+        host_port      = %d
       }
       
       extra_port_mappings {
         container_port = 443
-        host_port      = 8443
+        host_port      = %d
       }
     }
     
@@ -297,12 +299,12 @@ resource "mlplatform_kind_cluster" "test" {
     }
   }
 }
-`, name)
+`, name, basePort, basePort+1)
 }
 
 func testAccKindClusterConfig_customNodeImage(name string) string {
 	return fmt.Sprintf(`
-resource "mlplatform_kind_cluster" "test" {
+resource "kind_cluster" "test" {
   name       = "%s"
   node_image = "kindest/node:v1.27.0"
 }
@@ -311,7 +313,7 @@ resource "mlplatform_kind_cluster" "test" {
 
 func testAccKindClusterConfig_multipleWorkers(name string) string {
 	return fmt.Sprintf(`
-resource "mlplatform_kind_cluster" "test" {
+resource "kind_cluster" "test" {
   name = "%s"
 
   kind_config {

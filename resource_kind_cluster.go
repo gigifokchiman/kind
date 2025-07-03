@@ -20,6 +20,9 @@ func resourceKindCluster() *schema.Resource {
 		ReadContext:   resourceKindClusterRead,
 		UpdateContext: resourceKindClusterUpdate,
 		DeleteContext: resourceKindClusterDelete,
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -222,6 +225,15 @@ func resourceKindClusterRead(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.Errorf("Failed to parse kubeconfig: %s", err)
 	}
 
+	// Set basic attributes
+	d.Set("name", clusterName)
+	
+	// For imported resources, we can't determine the original node_image,
+	// so we'll set it to the default if not already set
+	if d.Get("node_image").(string) == "" {
+		d.Set("node_image", "kindest/node:v1.28.0")
+	}
+	
 	// Set computed attributes
 	d.Set("kubeconfig_path", getKubeconfigPath(clusterName))
 	d.Set("endpoint", kubeconfigData.Endpoint)
