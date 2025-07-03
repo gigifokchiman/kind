@@ -21,7 +21,7 @@ install-registry: build
 	mkdir -p $(REGISTRY_PATH)
 	cp $(PROVIDER_NAME) $(REGISTRY_PATH)/
 
-test-all: test test-coverage test-e2e
+test-all: test-unit test-acc test-coverage test-e2e
 
 test-unit:
 	go test -run "^Test[^Acc]" ./... -v
@@ -37,8 +37,7 @@ test-coverage:
 test-e2e:
 	bash test-e2e.sh
 
-test:
-	go test ./... -v
+test: test-unit test-acc
 
 clean:
 	rm -f $(PROVIDER_NAME)
