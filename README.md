@@ -1,6 +1,6 @@
-# Terraform Provider for ML Platform
+# Terraform Provider for Kind
 
-This is a custom Terraform provider that replaces the third-party Kind provider with our own implementation.
+This is a custom Terraform provider for managing Kind (Kubernetes in Docker) clusters.
 
 ## Features
 
@@ -29,27 +29,27 @@ make dev
 ```hcl
 terraform {
   required_providers {
-    mlplatform = {
-      source  = "mlplatform.local/your-org/mlplatform"
+    kind = {
+      source  = "kind.local/gigifokchiman/kind"
       version = "0.1.0"
     }
   }
 }
 
-provider "mlplatform" {
+provider "kind" {
   # Docker host configuration (optional)
   # docker_host = "unix:///var/run/docker.sock"
 }
 
 # Create a Kind cluster
-resource "mlplatform_kind_cluster" "default" {
-  name = "ml-platform-local"
+resource "kind_cluster" "default" {
+  name = "my-kind-cluster"
   
   kind_config {
     kind        = "Cluster"
     api_version = "kind.x-k8s.io/v1alpha4"
     
-    nodes {
+    node {
       role = "control-plane"
       
       kubeadm_config_patches = [
@@ -66,11 +66,11 @@ resource "mlplatform_kind_cluster" "default" {
       }
     }
     
-    nodes {
+    node {
       role = "worker"
     }
     
-    nodes {
+    node {
       role = "worker"
     }
   }

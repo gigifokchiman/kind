@@ -1,13 +1,13 @@
 terraform {
   required_providers {
-    mlplatform = {
-      source  = "mlplatform.local/your-org/mlplatform"
+    kind = {
+      source  = "gigifokchiman/kind"
       version = "0.1.0"
     }
   }
 }
 
-provider "mlplatform" {
+provider "kind" {
   # Docker host can be configured here or via DOCKER_HOST env var
   # docker_host = "unix:///var/run/docker.sock"
 }

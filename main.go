@@ -22,7 +22,7 @@ func main() {
 					},
 				},
 				ResourcesMap: map[string]*schema.Resource{
-					"mlplatform_kind_cluster": resourceKindCluster(),
+					"kind_cluster": resourceKindCluster(),
 				},
 				ConfigureContextFunc: providerConfigure,
 			}
@@ -37,7 +37,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		DockerHost: d.Get("docker_host").(string),
 	}
 
-	log.Printf("[INFO] Initializing ML Platform provider with Docker host: %s", config.DockerHost)
+	log.Printf("[INFO] Initializing Kind provider with Docker host: %s", config.DockerHost)
 
 	return config, diags
 }

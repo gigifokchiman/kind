@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os/exec"
 	"regexp"
 	"testing"
 
@@ -64,9 +65,9 @@ func TestAccKindCluster_withConfig(t *testing.T) {
 					testAccCheckKindClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "kind_config.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "kind_config.0.nodes.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "kind_config.0.nodes.0.role", "control-plane"),
-					resource.TestCheckResourceAttr(resourceName, "kind_config.0.nodes.0.extra_port_mappings.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "kind_config.0.node.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "kind_config.0.node.0.role", "control-plane"),
+					resource.TestCheckResourceAttr(resourceName, "kind_config.0.node.0.extra_port_mappings.#", "2"),
 					testAccCheckKindClusterPortMapping(resourceName, 80, 8080),
 					testAccCheckKindClusterPortMapping(resourceName, 443, 8443),
 				),
@@ -110,7 +111,7 @@ func TestAccKindCluster_multipleNodes(t *testing.T) {
 				Config: testAccKindClusterConfig_multipleWorkers(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckKindClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kind_config.0.nodes.#", "4"), // 1 control-plane + 3 workers
+					resource.TestCheckResourceAttr(resourceName, "kind_config.0.node.#", "4"), // 1 control-plane + 3 workers
 					testAccCheckKindClusterNodeCount(resourceName, 4),
 				),
 			},
@@ -208,8 +209,8 @@ func testAccCheckKindClusterPortMapping(n string, containerPort, hostPort int) r
 		// Check that the port mapping exists in the configuration
 		found := false
 		for i := 0; ; i++ {
-			containerPortKey := fmt.Sprintf("kind_config.0.nodes.0.extra_port_mappings.%d.container_port", i)
-			hostPortKey := fmt.Sprintf("kind_config.0.nodes.0.extra_port_mappings.%d.host_port", i)
+			containerPortKey := fmt.Sprintf("kind_config.0.node.0.extra_port_mappings.%d.container_port", i)
+			hostPortKey := fmt.Sprintf("kind_config.0.node.0.extra_port_mappings.%d.host_port", i)
 
 			cp, cpOk := rs.Primary.Attributes[containerPortKey]
 			hp, hpOk := rs.Primary.Attributes[hostPortKey]
@@ -273,7 +274,7 @@ resource "mlplatform_kind_cluster" "test" {
   name = "%s"
 
   kind_config {
-    nodes {
+    node {
       role = "control-plane"
       
       extra_port_mappings {
@@ -287,11 +288,11 @@ resource "mlplatform_kind_cluster" "test" {
       }
     }
     
-    nodes {
+    node {
       role = "worker"
     }
     
-    nodes {
+    node {
       role = "worker"
     }
   }
@@ -314,19 +315,19 @@ resource "mlplatform_kind_cluster" "test" {
   name = "%s"
 
   kind_config {
-    nodes {
+    node {
       role = "control-plane"
     }
     
-    nodes {
+    node {
       role = "worker"
     }
     
-    nodes {
+    node {
       role = "worker"
     }
     
-    nodes {
+    node {
       role = "worker"
     }
   }

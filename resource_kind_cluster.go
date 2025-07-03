@@ -90,7 +90,7 @@ func resourceKindCluster() *schema.Resource {
 							Optional: true,
 							Default:  "kind.x-k8s.io/v1alpha4",
 						},
-						"nodes": {
+						"node": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
@@ -328,7 +328,7 @@ func generateKindConfig(d *schema.ResourceData) map[string]interface{} {
 			}
 			
 			// Process nodes configuration
-			if nodes, ok := customConfig["nodes"]; ok {
+			if nodes, ok := customConfig["node"]; ok {
 				nodesList := nodes.([]interface{})
 				var processedNodes []map[string]interface{}
 				
@@ -366,7 +366,7 @@ func generateKindConfig(d *schema.ResourceData) map[string]interface{} {
 					
 					processedNodes = append(processedNodes, processedNode)
 				}
-				config["nodes"] = processedNodes
+				config["node"] = processedNodes
 			}
 		}
 	}

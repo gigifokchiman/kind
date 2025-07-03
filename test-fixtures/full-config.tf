@@ -1,16 +1,16 @@
 terraform {
   required_providers {
-    mlplatform = {
-      source  = "mlplatform.local/your-org/mlplatform"
+    kind = {
+      source  = "github.com/gigifokcm/kind"
       version = "0.1.0"
     }
   }
 }
 
-provider "mlplatform" {}
+provider "kind" {}
 
 # Full configuration test
-resource "mlplatform_kind_cluster" "test" {
+resource "kind_cluster" "test" {
   name       = "test-full-config"
   node_image = "kindest/node:v1.27.0"
 
@@ -19,7 +19,7 @@ resource "mlplatform_kind_cluster" "test" {
     api_version = "kind.x-k8s.io/v1alpha4"
 
     # Control plane with port mappings
-    nodes {
+    node {
       role = "control-plane"
 
       kubeadm_config_patches = [
@@ -46,15 +46,15 @@ resource "mlplatform_kind_cluster" "test" {
     }
 
     # Multiple worker nodes
-    nodes {
+    node {
       role = "worker"
     }
 
-    nodes {
+    node {
       role = "worker"
     }
 
-    nodes {
+    node {
       role = "worker"
     }
   }
@@ -64,10 +64,10 @@ resource "mlplatform_kind_cluster" "test" {
 
 # Test that we can use the cluster credentials
 provider "kubernetes" {
-  host                   = mlplatform_kind_cluster.test.endpoint
-  cluster_ca_certificate = base64decode(mlplatform_kind_cluster.test.cluster_ca_certificate)
-  client_certificate     = base64decode(mlplatform_kind_cluster.test.client_certificate)
-  client_key             = base64decode(mlplatform_kind_cluster.test.client_key)
+  host                   = kind_cluster.test.endpoint
+  cluster_ca_certificate = base64decode(kind_cluster.test.cluster_ca_certificate)
+  client_certificate     = base64decode(kind_cluster.test.client_certificate)
+  client_key             = base64decode(kind_cluster.test.client_key)
 }
 
 # Create a test namespace to verify cluster is working
@@ -79,8 +79,8 @@ resource "kubernetes_namespace" "test" {
 
 output "test_results" {
   value = {
-    cluster_name    = mlplatform_kind_cluster.test.name
-    cluster_ready   = mlplatform_kind_cluster.test.wait_for_ready
+    cluster_name    = kind_cluster.test.name
+    cluster_ready   = kind_cluster.test.wait_for_ready
     namespace_created = kubernetes_namespace.test.metadata[0].name
   }
 }

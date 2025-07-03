@@ -27,7 +27,7 @@ func TestGenerateKindConfig(t *testing.T) {
 			input: map[string]interface{}{
 				"kind_config": []interface{}{
 					map[string]interface{}{
-						"nodes": []interface{}{
+						"node": []interface{}{
 							map[string]interface{}{
 								"role": "control-plane",
 							},
@@ -41,9 +41,17 @@ func TestGenerateKindConfig(t *testing.T) {
 			expected: map[string]interface{}{
 				"kind":       "Cluster",
 				"apiVersion": "kind.x-k8s.io/v1alpha4",
-				"nodes": []map[string]interface{}{
-					{"role": "control-plane"},
-					{"role": "worker"},
+				"node": []map[string]interface{}{
+					{
+						"role": "control-plane",
+						"extraPortMappings": []map[string]interface{}(nil),
+						"kubeadmConfigPatches": []string(nil),
+					},
+					{
+						"role": "worker",
+						"extraPortMappings": []map[string]interface{}(nil),
+						"kubeadmConfigPatches": []string(nil),
+					},
 				},
 			},
 		},
@@ -52,7 +60,7 @@ func TestGenerateKindConfig(t *testing.T) {
 			input: map[string]interface{}{
 				"kind_config": []interface{}{
 					map[string]interface{}{
-						"nodes": []interface{}{
+						"node": []interface{}{
 							map[string]interface{}{
 								"role": "control-plane",
 								"extra_port_mappings": []interface{}{
@@ -70,7 +78,7 @@ func TestGenerateKindConfig(t *testing.T) {
 			expected: map[string]interface{}{
 				"kind":       "Cluster",
 				"apiVersion": "kind.x-k8s.io/v1alpha4",
-				"nodes": []map[string]interface{}{
+				"node": []map[string]interface{}{
 					{
 						"role": "control-plane",
 						"extraPortMappings": []map[string]interface{}{
@@ -80,6 +88,7 @@ func TestGenerateKindConfig(t *testing.T) {
 								"protocol":      "TCP",
 							},
 						},
+						"kubeadmConfigPatches": []string(nil),
 					},
 				},
 			},
@@ -207,6 +216,6 @@ func TestResourceTimeouts(t *testing.T) {
 	assert.NotNil(t, resource.Timeouts.Delete)
 	
 	// Default timeouts should be reasonable
-	assert.Equal(t, "10m", resource.Timeouts.Create.String())
-	assert.Equal(t, "5m", resource.Timeouts.Delete.String())
+	assert.Equal(t, "10m0s", resource.Timeouts.Create.String())
+	assert.Equal(t, "5m0s", resource.Timeouts.Delete.String())
 }
