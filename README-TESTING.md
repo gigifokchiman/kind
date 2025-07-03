@@ -314,6 +314,7 @@ echo "::error::Cluster creation failed"
 free -h
 df -h
 docker system df
+
 ```
 
 ## Test Best Practices
