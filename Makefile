@@ -8,7 +8,7 @@ INSTALL_PATH=~/.terraform.d/plugins/kind.local/gigifokchiman/kind/$(VERSION)/$(O
 # Registry installation path for public distribution
 REGISTRY_PATH=~/.terraform.d/plugins/registry.terraform.io/gigifokchiman/kind/$(VERSION)/$(OS_ARCH)
 
-.PHONY: build install install-registry test test-all test-unit test-acc test-coverage test-e2e clean docs
+.PHONY: build install install-registry test test-unit test-acc test-coverage clean docs dev
 
 build:
 	go build -o $(PROVIDER_NAME)
@@ -21,8 +21,6 @@ install-registry: build
 	mkdir -p $(REGISTRY_PATH)
 	cp $(PROVIDER_NAME) $(REGISTRY_PATH)/
 
-test-all: test-unit test-acc test-coverage test-e2e
-
 test-unit:
 	go test -run "^Test[^Acc]" ./... -v
 
@@ -34,10 +32,9 @@ test-coverage:
 	go tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report generated: coverage.html"
 
-test-e2e:
-	bash test-e2e.sh
-
-test: test-unit test-acc
+test:
+	$(MAKE) test-unit
+	$(MAKE) test-acc
 
 clean:
 	rm -f $(PROVIDER_NAME)

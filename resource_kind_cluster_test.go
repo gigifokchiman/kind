@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"os/exec"
-	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -240,17 +240,24 @@ func testAccCheckKindClusterNodeCount(n string, expectedCount int) resource.Test
 			return fmt.Errorf("Not found: %s", n)
 		}
 
-		// Use kubectl to check actual node count
-		cmd := exec.Command("kubectl", "get", "nodes", "--context", fmt.Sprintf("kind-%s", rs.Primary.ID), "-o", "json")
+		// Use kubectl to get node count in a simpler way
+		cmd := exec.Command("kubectl", "get", "nodes", "--context", fmt.Sprintf("kind-%s", rs.Primary.ID), "--no-headers")
 		output, err := cmd.Output()
 		if err != nil {
 			return fmt.Errorf("Failed to get nodes: %s", err)
 		}
 
-		// Simple check: count occurrences of "Ready" status
-		readyCount := len(regexp.MustCompile(`"type":"Ready"`).FindAllString(string(output), -1))
-		if readyCount != expectedCount {
-			return fmt.Errorf("Expected %d nodes, got %d", expectedCount, readyCount)
+		// Count non-empty lines (each line represents a node)
+		lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+		nodeCount := 0
+		for _, line := range lines {
+			if strings.TrimSpace(line) != "" {
+				nodeCount++
+			}
+		}
+
+		if nodeCount != expectedCount {
+			return fmt.Errorf("Expected %d nodes, got %d. Output:\n%s", expectedCount, nodeCount, string(output))
 		}
 
 		return nil
