@@ -1,11 +1,9 @@
 name: Build
-
 on:
   push:
     tags:
       - 'v*'
   workflow_dispatch:
-
 jobs:
   build:
     name: Build
@@ -80,10 +78,40 @@ jobs:
     - name: Download all artifacts
       uses: actions/download-artifact@v4
       
+    - name: Import GPG key
+      uses: crazy-max/ghaction-import-gpg@v6
+      with:
+        gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+        passphrase: ${{ secrets.GPG_PASSPHRASE }}
+        
+    - name: Sign artifacts
+      run: |
+        # Find all terraform-provider-kind archives and sign them
+        find . -name "terraform-provider-kind*.zip" -o -name "terraform-provider-kind*.tar.gz" | while read file; do
+          echo "Signing $file"
+          gpg --batch --yes --detach-sign --armor "$file"
+        done
+        
+        # Create SHA256SUMS file
+        find . -name "terraform-provider-kind*.zip" -o -name "terraform-provider-kind*.tar.gz" | while read file; do
+          sha256sum "$file" >> terraform-provider-kind_SHA256SUMS
+        done
+        
+        # Sort the SHA256SUMS file for consistency
+        sort terraform-provider-kind_SHA256SUMS -o terraform-provider-kind_SHA256SUMS
+        
+        # Sign the SHA256SUMS file
+        gpg --batch --yes --detach-sign --armor terraform-provider-kind_SHA256SUMS
+        
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
-        files: '**/terraform-provider-kind*'
+        files: |
+          **/terraform-provider-kind*.zip
+          **/terraform-provider-kind*.tar.gz
+          **/terraform-provider-kind*.zip.asc
+          **/terraform-provider-kind*.tar.gz.asc
+          terraform-provider-kind_SHA256SUMS*
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
