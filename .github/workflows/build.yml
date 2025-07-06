@@ -39,7 +39,7 @@ jobs:
         go-version: '1.21'
         cache: true
         cache-dependency-path: go.sum
-        
+
     - name: Download dependencies
       run: go mod download
       
@@ -90,6 +90,12 @@ jobs:
         files: |
           **/*.tar.gz
           **/*.zip
+        files: |
+          **/terraform-provider-kind*.zip
+          **/terraform-provider-kind*.tar.gz
+          **/terraform-provider-kind*.zip.asc
+          **/terraform-provider-kind*.tar.gz.asc
+          terraform-provider-kind_SHA256SUMS*
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
