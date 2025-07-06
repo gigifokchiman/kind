@@ -128,6 +128,43 @@ func resourceKindCluster() *schema.Resource {
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
+									"extra_mounts": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Description: "Extra volume mounts from host to container",
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"host_path": {
+													Type:     schema.TypeString,
+													Required: true,
+													Description: "Path on the host to mount",
+												},
+												"container_path": {
+													Type:     schema.TypeString,
+													Required: true,
+													Description: "Path in the container to mount to",
+												},
+												"readonly": {
+													Type:     schema.TypeBool,
+													Optional: true,
+													Default:  false,
+													Description: "Mount as read-only",
+												},
+												"selinux_relabel": {
+													Type:     schema.TypeBool,
+													Optional: true,
+													Default:  false,
+													Description: "Enable SELinux relabeling",
+												},
+												"propagation": {
+													Type:     schema.TypeString,
+													Optional: true,
+													Default:  "None",
+													Description: "Mount propagation mode",
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -374,6 +411,34 @@ func generateKindConfig(d *schema.ResourceData) map[string]interface{} {
 							processedPatches = append(processedPatches, patch.(string))
 						}
 						processedNode["kubeadmConfigPatches"] = processedPatches
+					}
+					
+					// Process extra mounts
+					if extraMounts, ok := nodeMap["extra_mounts"]; ok {
+						mountsList := extraMounts.([]interface{})
+						var processedMounts []map[string]interface{}
+						
+						for _, mount := range mountsList {
+							mountMap := mount.(map[string]interface{})
+							processedMount := map[string]interface{}{
+								"hostPath":      mountMap["host_path"],
+								"containerPath": mountMap["container_path"],
+							}
+							
+							// Add optional fields if present
+							if readOnly, ok := mountMap["readonly"]; ok {
+								processedMount["readOnly"] = readOnly
+							}
+							if selinuxRelabel, ok := mountMap["selinux_relabel"]; ok {
+								processedMount["selinuxRelabel"] = selinuxRelabel
+							}
+							if propagation, ok := mountMap["propagation"]; ok {
+								processedMount["propagation"] = propagation
+							}
+							
+							processedMounts = append(processedMounts, processedMount)
+						}
+						processedNode["extraMounts"] = processedMounts
 					}
 					
 					processedNodes = append(processedNodes, processedNode)
