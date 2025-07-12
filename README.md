@@ -6,15 +6,38 @@
 - As it is for a demo purpose, the artifact is not signed. It can be loaded to the local computer for a quick validation.
 - The validation can be written in HCL or TypeScript.
 
-## Installation Methods (macos)
+## Installation Methods
 
-### Method 1: Local Development Installation (Recommended)
+### Method 1: Download from GitHub Releases (Recommended)
 
-Use the Makefile for easy local development:
+Download pre-built binaries from [GitHub Releases](https://github.com/gigifokchiman/kind/releases):
+
+1. **Download the provider binary** for your platform:
+   - macOS Intel: `terraform-provider-kind_vX.X.X_darwin_amd64.tar.gz`
+   - macOS Apple Silicon: `terraform-provider-kind_vX.X.X_darwin_arm64.tar.gz`  
+   - Linux: `terraform-provider-kind_vX.X.X_linux_amd64.tar.gz`
+   - Windows: `terraform-provider-kind_vX.X.X_windows_amd64.zip`
+
+2. **Extract and install**:
+   ```bash
+   # Create plugin directory
+   mkdir -p ~/.terraform.d/plugins/kind.local/gigifokchiman/kind/0.1.4/darwin_arm64
+   
+   # Extract and copy binary (adjust paths for your platform)
+   tar -xzf terraform-provider-kind_v0.1.4_darwin_arm64.tar.gz
+   cp terraform-provider-kind ~/.terraform.d/plugins/kind.local/gigifokchiman/kind/0.1.4/darwin_arm64/
+   ```
+
+3. **Download SDKs** (optional):
+   - TypeScript SDK: Built artifacts in `lib/` directory
+   - Python SDK: Built package in `python/` directory
+
+### Method 2: Local Development Installation
+
+For development, use the Makefile:
 
 ```bash
 make build
-# Build and install for local development
 make install
 ```
 
@@ -22,17 +45,6 @@ This will:
 - Build the provider binary
 - Install it to `~/.terraform.d/plugins/kind.local/gigifokchiman/kind/0.1.4/`
 - Allow you to use the provider in your Terraform configurations
-
-### Method 2: Registry-Style Installation
-
-For testing registry-style installation:
-
-```bash
-# Build and install as if from registry
-make install-registry
-```
-
-This installs to `~/.terraform.d/plugins/registry.terraform.io/gigifokchiman/kind/0.1.4/`
 
 ### Other Makefile Commands
 
@@ -108,6 +120,62 @@ resource "kind_cluster" "default" {
   name = "my-cluster"
   # other configuration...
 }
+```
+
+## Using the TypeScript SDK
+
+Download the TypeScript SDK from [GitHub Releases](https://github.com/gigifokchiman/kind/releases) and use it in your CDKTF projects:
+
+```typescript
+import { App, TerraformStack } from "cdktf";
+import { KindProvider } from "./path/to/downloaded/sdk";
+import { Cluster } from "./path/to/downloaded/sdk";
+
+class MyStack extends TerraformStack {
+  constructor(scope: App, name: string) {
+    super(scope, name);
+
+    new KindProvider(this, "kind", {});
+
+    new Cluster(this, "my-cluster", {
+      name: "test-cluster",
+      waitForReady: true,
+    });
+  }
+}
+
+const app = new App();
+new MyStack(app, "my-stack");
+app.synth();
+```
+
+## Using the Python SDK
+
+Download the Python SDK from [GitHub Releases](https://github.com/gigifokchiman/kind/releases) and install it locally:
+
+```bash
+# Extract and install Python SDK
+pip install ./python/dist/*.whl
+```
+
+```python
+from cdktf import App, TerraformStack
+from kind_provider import KindProvider, Cluster
+
+class MyStack(TerraformStack):
+    def __init__(self, scope: App, name: str):
+        super().__init__(scope, name)
+        
+        KindProvider(self, "kind")
+        
+        Cluster(self, "my-cluster",
+            name="test-cluster",
+            wait_for_ready=True
+        )
+
+app = App()
+MyStack(app, "my-stack")
+app.synth()
 ```
 
 ## Troubleshooting
