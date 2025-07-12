@@ -1,5 +1,5 @@
 PROVIDER_NAME=terraform-provider-kind
-VERSION=0.1.3
+VERSION=0.1.4
 OS_ARCH=$(shell go env GOOS)_$(shell go env GOARCH)
 
 # Local installation path for Terraform to find the provider
@@ -122,3 +122,32 @@ test-sdks: test-ts-sdk test-python-sdk
 # Full workflow: build and test everything
 sdk-ci: build-ts-sdk build-python-sdk test-sdks
 	@echo "All SDKs built and tested successfully!"
+
+# Version management targets
+update-version:
+	@echo "Updating all files to version $(VERSION)..."
+	@sed -i '' 's/"version": "[^"]*"/"version": "$(VERSION)"/' package.json
+	@sed -i '' 's/kind@[0-9.]*[0-9]/kind@$(VERSION)/' cdktf.json cdktf-python.json
+	@sed -i '' 's/version = "[^"]*"/version = "$(VERSION)"/' test-fixtures/*.tf
+	@sed -i '' 's/kind\/[0-9.]*[0-9]/kind\/$(VERSION)/g' README.md
+	@echo "Version updated to $(VERSION) in all files"
+
+new-version:
+	@read -p "Enter new version (current: $(VERSION)): " version; \
+	if [ -n "$$version" ]; then \
+		$(MAKE) update-version VERSION=0.1.4
+		echo "Updated VERSION in Makefile to $$version"; \
+		sed -i '' "s/VERSION=0.1.4
+		echo "Building and installing new version..."; \
+		$(MAKE) build install; \
+		echo "Committing version update..."; \
+		git add -A; \
+		git commit -m "Release v$$version: Update all version references"; \
+		echo "Creating and pushing tag..."; \
+		git tag "v$$version"; \
+		git push origin master; \
+		git push origin "v$$version"; \
+		echo "✅ Version $$version released successfully!"; \
+	else \
+		echo "No version entered, cancelled"; \
+	fi

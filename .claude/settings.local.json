@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(go build:*)",
+      "Bash(go mod:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(make:*)",
+      "Bash(rg:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(rm:*)",
+      "Bash(terraform:*)",
+      "Bash(kind get:*)",
+      "Bash(chmod:*)",
+      "WebFetch(domain:developer.hashicorp.com)",
+      "Bash(TF_ACC=1 go test -run \"TestAccKindCluster_withConfig\" -v)",
+      "Bash(git tag:*)",
+      "Bash(git push:*)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(ls:*)",
+      "Bash(chanpm install)",
+      "Bash(npm install:*)",
+      "Bash(npm run generate:*)",
+      "Bash(./test-setup.sh:*)",
+      "Bash(grep:*)",
+      "Bash(env)",
+      "Bash(NODE_NO_WARNINGS=1 make build-ts-sdk)",
+      "Bash(npm config:*)",
+      "Bash(NODE_NO_WARNINGS=1 npm install)",
+      "Bash(git add:*)",
+      "Bash(git reset:*)",
+      "Bash(git commit:*)",
+      "Bash(go test:*)"
+    ],
+    "deny": []
+  }
+}

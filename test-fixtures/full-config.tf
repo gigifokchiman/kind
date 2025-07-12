@@ -5,7 +5,7 @@ resource "kind_cluster" "full_test" {
 
   kind_config {
     kind        = "Cluster"
-    api_version = "kind.x-k8s.io/v1alpha4"
+    api_version = "0.1.4"
 
     # Control plane with port mappings
     node {

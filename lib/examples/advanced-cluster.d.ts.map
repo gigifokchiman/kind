@@ -1,0 +1,1 @@
+{"version":3,"file":"advanced-cluster.d.ts","sourceRoot":"","sources":["../../src/examples/advanced-cluster.ts"],"names":[],"mappings":"AAAA,OAAO,EAAO,cAAc,EAAmB,MAAM,OAAO,CAAC;AAC7D,OAAO,EAAE,SAAS,EAAE,MAAM,YAAY,CAAC;AAKvC,cAAM,wBAAyB,SAAQ,cAAc;gBACvC,KAAK,EAAE,SAAS,EAAE,EAAE,EAAE,MAAM;CAmGzC;AAOD,OAAO,EAAE,wBAAwB,EAAE,CAAC"}

@@ -1,0 +1,16 @@
+{
+  "stacks": {
+    "kind-cluster-example": {
+      "annotations": [
+      ],
+      "constructPath": "kind-cluster-example",
+      "dependencies": [
+      ],
+      "name": "kind-cluster-example",
+      "stackMetadataPath": "stacks/kind-cluster-example/metadata.json",
+      "synthesizedStackPath": "stacks/kind-cluster-example/cdk.tf.json",
+      "workingDirectory": "stacks/kind-cluster-example"
+    }
+  },
+  "version": "0.21.0"
+}

@@ -1,0 +1,1 @@
+{"version":3,"file":"basic-cluster.d.ts","sourceRoot":"","sources":["../../src/examples/basic-cluster.ts"],"names":[],"mappings":"AAAA,OAAO,EAAO,cAAc,EAAE,MAAM,OAAO,CAAC;AAC5C,OAAO,EAAE,SAAS,EAAE,MAAM,YAAY,CAAC;AAKvC,cAAM,gBAAiB,SAAQ,cAAc;gBAC/B,KAAK,EAAE,SAAS,EAAE,EAAE,EAAE,MAAM;CAiDzC;AAOD,OAAO,EAAE,gBAAgB,EAAE,CAAC"}

@@ -1,0 +1,18 @@
+{
+  "//": {
+    "metadata": {
+      "backend": "local",
+      "stackName": "kind-cluster-example",
+      "version": "0.21.0"
+    },
+    "outputs": {
+    }
+  },
+  "terraform": {
+    "backend": {
+      "local": {
+        "path": "/Users/chimanfok/workspaces/github/_data/terraform-provider-kind/terraform.kind-cluster-example.tfstate"
+      }
+    }
+  }
+}
