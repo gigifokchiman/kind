@@ -94,6 +94,11 @@ jobs:
         node-version: '18'
         registry-url: 'https://registry.npmjs.org'
         
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: '1.6.6'
+        
     - name: Install CDKTF CLI
       run: npm install -g cdktf-cli@latest
         
@@ -133,6 +138,11 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
+        
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: '1.6.6'
         
     - name: Install CDKTF CLI
       run: npm install -g cdktf-cli@latest
