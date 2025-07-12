@@ -1,0 +1,14 @@
+{
+  "language": "typescript",
+  "app": "npm run compile",
+  "projectId": "kind-provider-cdktf",
+  "terraformProviders": [
+    "kind.local/gigifokchiman/kind@0.1.0"
+  ],
+  "terraformModules": [],
+  "codeMakerOutput": "src/.gen",
+  "context": {
+    "excludeStackIdFromLogicalIds": "true",
+    "allowSepCharsInLogicalIds": "true"
+  }
+}

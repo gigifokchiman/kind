@@ -1,5 +1,5 @@
 PROVIDER_NAME=terraform-provider-kind
-VERSION=0.1.0
+VERSION=0.1.2
 OS_ARCH=$(shell go env GOOS)_$(shell go env GOARCH)
 
 # Local installation path for Terraform to find the provider

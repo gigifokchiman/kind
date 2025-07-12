@@ -1,0 +1,14 @@
+{
+  "language": "python",
+  "app": "python main.py",
+  "projectId": "kind-provider-python-cdktf",
+  "terraformProviders": [
+    "kind.local/gigifokchiman/kind@0.1.0"
+  ],
+  "terraformModules": [],
+  "codeMakerOutput": "python/.gen",
+  "context": {
+    "excludeStackIdFromLogicalIds": "true",
+    "allowSepCharsInLogicalIds": "true"
+  }
+}

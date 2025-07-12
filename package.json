@@ -1,0 +1,39 @@
+{
+  "name": "@chimanfok/kind-cdktf",
+  "version": "0.1.2",
+  "description": "TypeScript CDK for Terraform bindings for the KIND provider",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "NODE_NO_WARNINGS=1 cdktf get && tsc",
+    "generate": "NODE_NO_WARNINGS=1 cdktf get",
+    "compile": "tsc",
+    "prepare": "npm run build",
+    "test": "npm run build && node lib/examples/basic-cluster.js"
+  },
+  "keywords": [
+    "terraform",
+    "cdktf",
+    "kind",
+    "kubernetes",
+    "docker"
+  ],
+  "author": "chimanfok",
+  "license": "MIT",
+  "dependencies": {
+    "cdktf": "^0.21.0",
+    "constructs": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "cdktf": "^0.21.0",
+    "constructs": "^10.0.0"
+  },
+  "files": [
+    "lib/",
+    "src/.gen/"
+  ]
+}
