@@ -36,6 +36,7 @@ jobs:
         sudo mv ./kind /usr/local/bin/kind
         
         # Install Terraform
+        sudo apt-get update && sudo apt-get install -y unzip
         curl -LO "https://releases.hashicorp.com/terraform/1.6.6/terraform_1.6.6_linux_amd64.zip"
         unzip terraform_1.6.6_linux_amd64.zip
         sudo mv terraform /usr/local/bin/
@@ -48,7 +49,7 @@ jobs:
       run: make test-unit
       
     - name: Run acceptance tests
-      run: TF_ACC=1 make test-acc
+      run: make test-acc
       env:
         TF_ACC: 1
         
@@ -79,7 +80,7 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
-        terraform_version: '1.5.0'
+        terraform_version: '1.6.6'
         
     - name: Build and install provider
       run: make build && make install
@@ -94,7 +95,7 @@ jobs:
     - name: Test full configuration
       run: |
         cd test-fixtures
-        terraform validate -var-file=full-config.tf
+        terraform validate
 
   test-sdks:
     name: Test TypeScript and Python SDKs  
@@ -121,10 +122,10 @@ jobs:
       with:
         python-version: '3.9'
         
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
       with:
-        node-version: '18'
+        terraform_version: '1.6.6'
         
     - name: Install CDKTF CLI
       run: npm install -g cdktf-cli@latest
