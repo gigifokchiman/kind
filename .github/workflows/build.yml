@@ -39,6 +39,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
+    - name: Configure git
+      run: git config --global advice.defaultBranchName false
+      
     - name: Set up Go
       uses: actions/setup-go@v5.5.0
       with:
@@ -95,6 +98,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
+    - name: Configure git
+      run: git config --global advice.defaultBranchName false
+      
     - name: Set up Go
       uses: actions/setup-go@v5.5.0
       with:
@@ -138,6 +144,9 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      
+    - name: Configure git
+      run: git config --global advice.defaultBranchName false
       
     - name: Set up Go
       uses: actions/setup-go@v5.5.0
@@ -187,6 +196,9 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      
+    - name: Configure git
+      run: git config --global advice.defaultBranchName false
       
     - name: Download all artifacts
       uses: actions/download-artifact@v4
