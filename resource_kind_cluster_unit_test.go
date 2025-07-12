@@ -44,11 +44,13 @@ func TestGenerateKindConfig(t *testing.T) {
 				"nodes": []map[string]interface{}{
 					{
 						"role": "control-plane",
+						"extraMounts": []map[string]interface{}(nil),
 						"extraPortMappings": []map[string]interface{}(nil),
 						"kubeadmConfigPatches": []string(nil),
 					},
 					{
 						"role": "worker",
+						"extraMounts": []map[string]interface{}(nil),
 						"extraPortMappings": []map[string]interface{}(nil),
 						"kubeadmConfigPatches": []string(nil),
 					},
@@ -81,6 +83,7 @@ func TestGenerateKindConfig(t *testing.T) {
 				"nodes": []map[string]interface{}{
 					{
 						"role": "control-plane",
+						"extraMounts": []map[string]interface{}(nil),
 						"extraPortMappings": []map[string]interface{}{
 							{
 								"containerPort": 80,
