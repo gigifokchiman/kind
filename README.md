@@ -1,5 +1,11 @@
 # Terraform Provider Installation Guide
 
+# Purpose:
+- This is an exercise for understanding how the terraform packages work, e.g. the CRUD operations.
+- Kubernetes in Docker (Kind) was chosen as a starting point as the basic CRUD operation is simple for the demo purpose.
+- As it is for a demo purpose, the artifact is not signed. It can be loaded to the local computer for a quick validation.
+- The validation can be written in HCL or TypeScript.
+
 ## Installation Methods (macos)
 
 ### Method 1: Local Development Installation (Recommended)
