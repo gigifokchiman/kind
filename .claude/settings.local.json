@@ -32,7 +32,10 @@
       "Bash(git add:*)",
       "Bash(git reset:*)",
       "Bash(git commit:*)",
-      "Bash(go test:*)"
+      "Bash(go test:*)",
+      "Bash(gh cache list:*)",
+      "Bash(gh cache delete:*)",
+      "mcp__awslabs-core-mcp-server__prompt_understanding"
     ],
     "deny": []
   }

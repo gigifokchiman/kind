@@ -42,20 +42,18 @@ jobs:
     - name: Configure git
       run: git config --global advice.defaultBranchName false
       
+    # SECURITY: Prevent cache conflicts that cause tar extraction errors (Issues #506, #424, #403)
+    - name: Clean Go cache directories
+      run: |
+        rm -rf ~/go/pkg/mod ~/.cache/go-build /tmp/go-cache /tmp/go-mod-cache
+        mkdir -p /tmp/go-cache /tmp/go-mod-cache
+    
+    # SECURITY: Cache disabled to prevent cache poisoning attacks in release workflow
     - name: Set up Go
-      uses: actions/setup-go@v5.5.0
+      uses: actions/setup-go@v4
       with:
-        go-version: '1.21'
-        
-    - name: Cache Go modules
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
+        go-version: '1.24.5'
+        cache: false
 
     - name: Download dependencies
       run: go mod download
@@ -101,20 +99,18 @@ jobs:
     - name: Configure git
       run: git config --global advice.defaultBranchName false
       
+    # SECURITY: Prevent cache conflicts that cause tar extraction errors (Issues #506, #424, #403)
+    - name: Clean Go cache directories
+      run: |
+        rm -rf ~/go/pkg/mod ~/.cache/go-build /tmp/go-cache /tmp/go-mod-cache
+        mkdir -p /tmp/go-cache /tmp/go-mod-cache
+    
+    # SECURITY: Cache disabled to prevent cache poisoning attacks in release workflow
     - name: Set up Go
-      uses: actions/setup-go@v5.5.0
+      uses: actions/setup-go@v4
       with:
-        go-version: '1.21'
-        
-    - name: Cache Go modules
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
+        go-version: '1.24.5'
+        cache: false
         
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -148,20 +144,18 @@ jobs:
     - name: Configure git
       run: git config --global advice.defaultBranchName false
       
+    # SECURITY: Prevent cache conflicts that cause tar extraction errors (Issues #506, #424, #403)
+    - name: Clean Go cache directories
+      run: |
+        rm -rf ~/go/pkg/mod ~/.cache/go-build /tmp/go-cache /tmp/go-mod-cache
+        mkdir -p /tmp/go-cache /tmp/go-mod-cache
+    
+    # SECURITY: Cache disabled to prevent cache poisoning attacks in release workflow
     - name: Set up Go
-      uses: actions/setup-go@v5.5.0
+      uses: actions/setup-go@v4
       with:
-        go-version: '1.21'
-        
-    - name: Cache Go modules
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
+        go-version: '1.24.5'
+        cache: false
         
     - name: Setup Python
       uses: actions/setup-python@v4
