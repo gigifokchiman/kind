@@ -1,0 +1,81 @@
+name: Auto Clean Old Caches
+
+on:
+  schedule:
+    # Run every Sunday at 2 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (show what would be deleted without deleting)'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+        - 'true'
+        - 'false'
+
+jobs:
+  auto-clean:
+    name: Clean Old Caches
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Clean old Go-related caches
+      run: |
+        echo "🧹 Auto-cleaning old Go-related caches..."
+        
+        # Set dry run mode
+        DRY_RUN="${{ github.event.inputs.dry_run || 'false' }}"
+        
+        # Define patterns for Go-related caches to clean
+        patterns=(
+          "setup-go-*"
+          "Linux-go-*" 
+          "Linux-gomod-*"
+          "go-nuclear-*"
+        )
+        
+        echo "📋 Current caches:"
+        gh cache list --repo ${{ github.repository }} || echo "No caches found"
+        echo ""
+        
+        # Clean each pattern
+        for pattern in "${patterns[@]}"; do
+          echo "🔍 Looking for pattern: $pattern"
+          
+          # Get cache keys matching pattern
+          cache_keys=$(gh cache list --repo ${{ github.repository }} --json key --jq --arg pattern "$pattern" '.[] | select(.key | test($pattern)) | .key' 2>/dev/null || echo "")
+          
+          if [ -n "$cache_keys" ]; then
+            echo "Found matching caches:"
+            echo "$cache_keys"
+            
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "🔍 DRY RUN: Would delete these caches (not actually deleting)"
+            else
+              echo "🗑️ Deleting matching caches..."
+              echo "$cache_keys" | while IFS= read -r key; do
+                if [ -n "$key" ]; then
+                  echo "Deleting: $key"
+                  gh cache delete --repo ${{ github.repository }} "$key" || echo "Failed to delete $key"
+                fi
+              done
+            fi
+          else
+            echo "No caches found matching pattern: $pattern"
+          fi
+          echo ""
+        done
+        
+        if [ "$DRY_RUN" = "true" ]; then
+          echo "✅ Dry run completed - no caches were actually deleted"
+        else
+          echo "✅ Cache cleanup completed"
+        fi
+        
+        echo ""
+        echo "📋 Remaining caches:"
+        gh cache list --repo ${{ github.repository }} || echo "No caches remaining"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

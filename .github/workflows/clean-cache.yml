@@ -1,0 +1,78 @@
+name: Clean GitHub Actions Cache
+
+on:
+  workflow_dispatch:
+    inputs:
+      cache_pattern:
+        description: 'Cache pattern to delete (leave empty for all)'
+        required: false
+        default: ''
+        type: string
+      confirm:
+        description: 'Type "DELETE ALL CACHES" to confirm'
+        required: true
+        type: string
+
+jobs:
+  clean-cache:
+    name: Clean Repository Caches
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Validate confirmation
+      if: ${{ github.event.inputs.confirm != 'DELETE ALL CACHES' }}
+      run: |
+        echo "❌ Cache deletion not confirmed"
+        echo "Please enter 'DELETE ALL CACHES' in the confirm field"
+        exit 1
+        
+    - name: List current caches
+      run: |
+        echo "📋 Current caches in repository:"
+        gh cache list --repo ${{ github.repository }} || echo "No caches found or error listing caches"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Delete specific cache pattern
+      if: ${{ github.event.inputs.cache_pattern != '' }}
+      run: |
+        echo "🗑️ Deleting caches matching pattern: ${{ github.event.inputs.cache_pattern }}"
+        gh cache delete --repo ${{ github.repository }} "${{ github.event.inputs.cache_pattern }}" || true
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Delete all caches
+      if: ${{ github.event.inputs.cache_pattern == '' }}
+      run: |
+        echo "🗑️ Deleting ALL caches in repository..."
+        
+        # Get all cache keys and delete them one by one
+        cache_keys=$(gh cache list --repo ${{ github.repository }} --json key --jq '.[].key' 2>/dev/null || echo "")
+        
+        if [ -z "$cache_keys" ]; then
+          echo "✅ No caches found to delete"
+          exit 0
+        fi
+        
+        echo "Found cache keys:"
+        echo "$cache_keys"
+        echo ""
+        
+        # Delete each cache
+        echo "$cache_keys" | while IFS= read -r key; do
+          if [ -n "$key" ]; then
+            echo "Deleting cache: $key"
+            gh cache delete --repo ${{ github.repository }} "$key" || echo "Failed to delete $key"
+          fi
+        done
+        
+        echo "✅ Cache deletion completed"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Verify cache deletion
+      run: |
+        echo "📋 Remaining caches after deletion:"
+        gh cache list --repo ${{ github.repository }} || echo "No caches remaining"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
