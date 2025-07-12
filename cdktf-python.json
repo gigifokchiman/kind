@@ -3,7 +3,7 @@
   "app": "python main.py",
   "projectId": "kind-provider-python-cdktf",
   "terraformProviders": [
-    "kind.local/gigifokchiman/kind@0.1.0"
+    "kind.local/gigifokchiman/kind@0.1.3"
   ],
   "terraformModules": [],
   "codeMakerOutput": "python/.gen",

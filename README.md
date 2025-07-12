@@ -20,7 +20,7 @@ make install
 
 This will:
 - Build the provider binary
-- Install it to `~/.terraform.d/plugins/kind.local/gigifokchiman/kind/0.1.0/`
+- Install it to `~/.terraform.d/plugins/kind.local/gigifokchiman/kind/0.1.3/`
 - Allow you to use the provider in your Terraform configurations
 
 ### Method 2: Registry-Style Installation
@@ -32,7 +32,7 @@ For testing registry-style installation:
 make install-registry
 ```
 
-This installs to `~/.terraform.d/plugins/registry.terraform.io/gigifokchiman/kind/0.1.0/`
+This installs to `~/.terraform.d/plugins/registry.terraform.io/gigifokchiman/kind/0.1.3/`
 
 ### Other Makefile Commands
 
@@ -71,7 +71,7 @@ terraform {
   required_providers {
     kind = {
       source  = "kind.local/gigifokchiman/kind"
-      version = "0.1.0"
+      version = "0.1.3"
     }
   }
 }
@@ -94,7 +94,7 @@ terraform {
   required_providers {
     kind = {
       source  = "registry.terraform.io/gigifokchiman/kind"
-      version = "0.1.0"
+      version = "0.1.3"
     }
   }
 }
