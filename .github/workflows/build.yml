@@ -99,6 +99,8 @@ jobs:
         
     - name: Build TypeScript SDK
       run: make build-ts-sdk
+      env:
+        NODE_NO_WARNINGS: 1
       
     - name: Publish TypeScript SDK
       run: make publish-ts-sdk
@@ -127,7 +129,7 @@ jobs:
       with:
         python-version: '3.9'
         
-    - name: Setup Node.js (for CDKTF CLI)
+    - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '18'
@@ -137,6 +139,8 @@ jobs:
       
     - name: Build Python SDK
       run: make build-python-sdk
+      env:
+        NODE_NO_WARNINGS: 1
       
     - name: Publish Python SDK
       run: make publish-python-sdk
