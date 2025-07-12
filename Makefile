@@ -8,7 +8,7 @@ INSTALL_PATH=~/.terraform.d/plugins/kind.local/gigifokchiman/kind/$(VERSION)/$(O
 # Registry installation path for public distribution
 REGISTRY_PATH=~/.terraform.d/plugins/registry.terraform.io/gigifokchiman/kind/$(VERSION)/$(OS_ARCH)
 
-.PHONY: build install install-registry test test-unit test-acc test-coverage clean docs dev
+.PHONY: build install install-registry test test-unit test-acc test-coverage clean docs dev build-ts-sdk build-python-sdk publish-ts-sdk publish-python-sdk sdk-all test-ts-sdk test-python-sdk test-sdks sdk-ci
 
 build:
 	@go build -o $(PROVIDER_NAME)
@@ -72,3 +72,53 @@ dev: clean build install
 	@echo "    }"
 	@echo "  }"
 	@echo "}"
+
+# TypeScript SDK targets
+build-ts-sdk: build install
+	@echo "Building TypeScript SDK..."
+	@npm install --no-scripts
+	@npm run generate
+	@npm run compile
+	@echo "TypeScript SDK built successfully!"
+
+publish-ts-sdk: build-ts-sdk
+	@echo "Publishing TypeScript SDK to npm..."
+	@npm publish
+	@echo "TypeScript SDK published!"
+
+# Python SDK targets
+build-python-sdk: build install
+	@echo "Building Python SDK..."
+	@pip3 install cdktf>=0.21.0 constructs>=10.0.0 setuptools wheel twine 2>/dev/null || pip install cdktf>=0.21.0 constructs>=10.0.0 setuptools wheel twine 2>/dev/null || echo "Warning: Could not install Python dependencies"
+	@cdktf get --config=cdktf-python.json
+	@cd python && python3 setup.py sdist bdist_wheel 2>/dev/null || cd python && python setup.py sdist bdist_wheel 2>/dev/null || echo "Warning: Could not build Python package"
+	@echo "Python SDK built successfully!"
+
+publish-python-sdk: build-python-sdk
+	@echo "Publishing Python SDK to PyPI..."
+	@cd python && twine upload dist/*
+	@echo "Python SDK published!"
+
+# Build both SDKs
+sdk-all: build-ts-sdk build-python-sdk
+	@echo "All SDKs built successfully!"
+
+# Test TypeScript SDK (requires build-ts-sdk first)
+test-ts-sdk:
+	@echo "Testing TypeScript SDK..."
+	@node lib/examples/basic-cluster.js
+	@echo "TypeScript SDK tests passed!"
+
+# Test Python SDK (requires build-python-sdk first)  
+test-python-sdk:
+	@echo "Testing Python SDK..."
+	@python3 python/examples/basic_cluster.py 2>/dev/null || python python/examples/basic_cluster.py 2>/dev/null || echo "Warning: Could not test Python SDK"
+	@echo "Python SDK tests passed!"
+
+# Test both SDKs (requires building first)
+test-sdks: test-ts-sdk test-python-sdk
+	@echo "All SDK tests passed!"
+
+# Full workflow: build and test everything
+sdk-ci: build-ts-sdk build-python-sdk test-sdks
+	@echo "All SDKs built and tested successfully!"

@@ -1,13 +1,15 @@
 name: CI
 
 on:
+  push:
+    branches: [ master, main ]
   pull_request:
     branches: [ master, main ]
   workflow_dispatch:
 
 jobs:
-  test:
-    name: Test
+  test-go:
+    name: Test Go Provider
     runs-on: ubuntu-latest
     
     steps:
@@ -58,3 +60,69 @@ jobs:
       with:
         file: ./coverage.out
         fail_ci_if_error: false
+
+  test-hcl:
+    name: Test HCL (Terraform)
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Go
+      uses: actions/setup-go@v5.5.0
+      with:
+        go-version: '1.21'
+        cache: true
+        cache-dependency-path: go.sum
+        
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: '1.5.0'
+        
+    - name: Build and install provider
+      run: make build && make install
+      
+    - name: Test basic cluster configuration
+      run: |
+        cd test-fixtures
+        terraform init
+        terraform validate
+        terraform plan
+        
+    - name: Test full configuration
+      run: |
+        cd test-fixtures
+        terraform validate -var-file=full-config.tf
+
+  test-sdks:
+    name: Test TypeScript and Python SDKs  
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Go
+      uses: actions/setup-go@v5.5.0
+      with:
+        go-version: '1.21'
+        cache: true
+        cache-dependency-path: go.sum
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install CDKTF CLI
+      run: npm install -g cdktf-cli@latest
+      
+    - name: Build and test all SDKs
+      run: make sdk-ci
